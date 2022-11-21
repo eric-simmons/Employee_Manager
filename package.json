@@ -1,0 +1,22 @@
+{
+  "name": "manage_employees",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "start":"node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "dotenv": "^16.0.3",
+    "inquirer": "^9.1.4",
+    "mysql2": "^2.3.3"
+  }
+}
