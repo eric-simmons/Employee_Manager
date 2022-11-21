@@ -6,7 +6,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "start":"node index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,7 +16,7 @@
   "dependencies": {
     "console.table": "^0.10.0",
     "dotenv": "^16.0.3",
-    "inquirer": "^9.1.4",
+    "inquirer": "^8.2.5",
     "mysql2": "^2.3.3"
   }
 }
