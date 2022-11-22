@@ -3,6 +3,7 @@ const inquirer = require('inquirer')
 const cTable = require('console.table')
 const connection = require('./config/connection.js')
 const { initQuestion, departmentQuestions, employeeQuestions } = require('./lib/questions.js')
+const { allowedNodeEnvironmentFlags } = require('process')
 
 
 
@@ -17,7 +18,6 @@ const showRoles = async () => {
         throw new Error(error)
     }
 }
-
 const showEmployees = async () => {
     try {
         const [results] = await connection.promise().query(`SELECT * FROM employees`)
@@ -28,10 +28,26 @@ const showEmployees = async () => {
         throw new Error(error)
     }
 }
+const showDepartments = async () => {
+    try {
+        const [results] = await connection.promise().query(`SELECT * FROM departments`)
+        console.table(results)
+        init()
+    }
+    catch (error) {
+        throw new Error(error)
+    }
+}
+
 
 const mapActions = {
     'View all Employees': showEmployees,
     'View all Roles' : showRoles,
+    'View all Departments' : showDepartments,
+    'Add new Employee' : addEmployee,
+    'Add new Department' : addDepartment,
+    'Add a new Role' : addRole,
+
 }
 
 const init = async () => {
