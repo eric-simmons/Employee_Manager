@@ -16,9 +16,9 @@
 
 require('dotenv').config()
 const inquirer = require('inquirer')
-const cTable = require('console.table')
+require('console.table')
 const connection = require('./config/connection.js')
-const { departmentQuestions, employeeQuestions, roleQuestions, updateQuestions } = require('./lib/questions.js')
+
 const process = require('process')
 
 
@@ -81,76 +81,109 @@ const addDepartment = async () => {
         name: 'name',
         message: 'What is the name of the New Department you would like to add?'
     }])
-    console.log(answer)
-    try{
+    try {
         await connection.promise().query(
             `INSERT INTO departments(name) VALUES (?)`, [answer.name]
         )
         showDepartments()
     }
-    catch(error){
+    catch (error) {
         throw new Error(error)
     }
 }
-const exit = async () => {
-    process.kill(process.pid, "SIGINT");
+const addRole = async () => {
+    connection.query(`SELECT name FROM departments`, async (err, res) => {
+
+        const answer = await inquirer.prompt([
+            {
+            type: "input",
+            name: "name",
+            message: "What is the name of the new Role you would like to add?"
+        },
+        {
+            type: "input", 
+            name: "salary",
+            message: "What is the salary for the new Role?"
+        },
+        {
+            type: "list",
+            name: "department",
+            message: "What department does this role belong to?",
+            choices: res.map(departments => departments.name)
+        }
+    ])
+        try {
+            await connection.promise().query(
+                `INSERT INTO roles(title, salary, department) VALUES (?, ?, ?)`, [answer.name, answer.salary, answer.department]
+            )
+            showDepartments()
+        }
+        catch (error) {
+            throw new Error(error)
+        }
+
+
+
+
+
+
+    })
 }
 const addEmployee = async () => {
 
-    connection.query(`SELECT * FROM roles`, async (err, res) => {
-        console.log(res)
-        const roleOptions = res.map(role => role.title)
+    connection.query(`SELECT title FROM roles; SELECT first_name FROM employees`, async (err, res) => {
+        const answers = await inquirer.prompt([
+            {
+                type: "input",
+                name: "firstName",
+                message: "Enter the first name of the new employee"
+            },
+            {
+                type: "input",
+                name: "lastName",
+                message: "Enter the last name of the new employee"
+            },
+            {
+                type: "list",
+                name: "role",
+                message: "What is the role of the new employee?",
+                choices: res[0].map(role => role.title)
+            },
+            {
+                type: "list",
+                name: "manager",
+                message: "Who is the manager for the new employee",
+                choices: res[1].map(employees => employees.first_name)
+            }
+        ])
+    try{
+        await connection.promise().query(`INSERT INTO employees(first_name, last_name, role_id, manager_id )`)
+
+
+    }
+    catch(error){
+        throw new Error(error)
+    }
+    
+    
+    
+    
+    
     })
+}
 
 
-    //     const answers = await inquirer.prompt([
-    //         {
-    //             type: "input",
-    //             name: "firstName",
-    //             message: "Enter the first name of the employee"
-
-    //         },
-    //         {
-    //             type: "input",
-    //             name: "lastName",
-    //             message: "Enter the last name of the employee"
-    //         },
-    //         {
-    //             type: "list",
-    //             name: "role",
-    //             choices: res.map(role => role.title)
-    //         }
-    //         // {
-    //         //     type: 'list',
-    //         //     name: "department",
-    //         //     choices: departmentChoices
-    //         // }
-    //     ])
-    // })
-    // try {
-
-
-
-
-
-
-
-
-    //     init()
-    // }
-    // catch (error) {
-    //     throw new Error(error)
-    // }
-
+const exit = async () => {
+    process.kill(process.pid, "SIGINT");
 }
 
 const mapActions = {
     'View all Employees': showEmployees,
     'View all Roles': showRoles,
     'View all Departments': showDepartments,
-    //'Add new Employee': addEmployee,
-     'Add new Department' : addDepartment,
-    // 'Add a new Role' : addRole,
+    'Add new Employee': addEmployee,
+    'Add new Department': addDepartment,
+    'Add a new Role' : addRole,
     'Exit': exit
 
 }
