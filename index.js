@@ -3,7 +3,7 @@ const inquirer = require('inquirer')
 const cTable = require('console.table')
 const connection = require('./config/connection.js')
 const { initQuestion, departmentQuestions, employeeQuestions } = require('./lib/questions.js')
-const { allowedNodeEnvironmentFlags } = require('process')
+const process = require('process')
 
 
 
@@ -38,15 +38,18 @@ const showDepartments = async () => {
         throw new Error(error)
     }
 }
-
+const exit = async () => {
+    process.kill(process.pid, "SIGINT");
+}
 
 const mapActions = {
     'View all Employees': showEmployees,
     'View all Roles' : showRoles,
     'View all Departments' : showDepartments,
-    'Add new Employee' : addEmployee,
-    'Add new Department' : addDepartment,
-    'Add a new Role' : addRole,
+    // 'Add new Employee' : addEmployee,
+    // 'Add new Department' : addDepartment,
+    // 'Add a new Role' : addRole,
+    'Exit' : exit
 
 }
 
