@@ -23,11 +23,24 @@ const process = require('process')
 
 
 
-
+const showDepartments = async () => {
+    try {
+        const [results] = await connection.promise().query(`SELECT * FROM departments`)
+        console.table(results)
+        init()
+    }
+    catch (error) {
+        throw new Error(error)
+    }
+}
 const showRoles = async () => {
     try {
         const [results] = await connection.promise().query(
-            `SELECT roles.role_id, roles.title, roles.salary, departments.name AS department
+            `SELECT 
+                roles.role_id,
+                roles.title,
+                roles.salary,
+                departments.name AS department
             FROM roles
             INNER JOIN departments ON roles.department_id=departments.department_id`
         )
@@ -42,12 +55,13 @@ const showEmployees = async () => {
     try {
         const [results] = await connection.promise().query(
             `SELECT 
-            employees.employee_id,
-             employees.first_name,
-              employees.last_name,
-               roles.title,
+                employees.employee_id,
+                employees.first_name,
+                employees.last_name,
+                employees.manager_id,
+                roles.title,
                 roles.salary,
-                 departments.name as department
+                departments.name as department
             FROM employees
             INNER JOIN roles ON employees.role_id=roles.role_id
             INNER JOIN departments ON roles.department_id=departments.department_id
@@ -61,13 +75,20 @@ const showEmployees = async () => {
         throw new Error(error)
     }
 }
-const showDepartments = async () => {
-    try {
-        const [results] = await connection.promise().query(`SELECT * FROM departments`)
-        console.table(results)
-        init()
+const addDepartment = async () => {
+    const answer = await inquirer.prompt([{
+        type: 'input',
+        name: 'name',
+        message: 'What is the name of the New Department you would like to add?'
+    }])
+    console.log(answer)
+    try{
+        await connection.promise().query(
+            `INSERT INTO departments(name) VALUES (?)`, [answer.name]
+        )
+        showDepartments()
     }
-    catch (error) {
+    catch(error){
         throw new Error(error)
     }
 }
@@ -127,8 +148,8 @@ const mapActions = {
     'View all Employees': showEmployees,
     'View all Roles': showRoles,
     'View all Departments': showDepartments,
-    'Add new Employee': addEmployee,
-    // 'Add new Department' : addDepartment,
+    //'Add new Employee': addEmployee,
+     'Add new Department' : addDepartment,
     // 'Add a new Role' : addRole,
     'Exit': exit
 
