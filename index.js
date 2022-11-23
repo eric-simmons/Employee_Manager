@@ -41,8 +41,17 @@ const showRoles = async () => {
 const showEmployees = async () => {
     try {
         const [results] = await connection.promise().query(
-            `SELECT
-            FROM employees`
+            `SELECT 
+            employees.employee_id,
+             employees.first_name,
+              employees.last_name,
+               roles.title,
+                roles.salary,
+                 departments.name as department
+            FROM employees
+            INNER JOIN roles ON employees.role_id=roles.role_id
+            INNER JOIN departments ON roles.department_id=departments.department_id
+            `
 
         )
         console.table(results)
