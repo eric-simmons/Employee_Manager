@@ -18,6 +18,7 @@ CREATE TABLE roles(
     PRIMARY KEY (role_id),
     FOREIGN KEY (department_id)
     REFERENCES departments(department_id)
+    ON DELETE SET NULL
 );
 
 CREATE TABLE employees(
@@ -29,4 +30,5 @@ CREATE TABLE employees(
     PRIMARY KEY (employee_id),
     FOREIGN KEY (role_id) 
     REFERENCES roles(role_id)
+    ON DELETE SET NULL
 );
