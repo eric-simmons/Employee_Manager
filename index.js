@@ -109,14 +109,13 @@ const addRole = async () => {
                     choices: res.map(departments => departments.name)
                 }
             ])
-
         })
     }
 
 
-    connection.query(`SELECT department_id FROM departments WHERE departments.name = Accounting`, async (error, res) => {
+    // connection.query(`SELECT department_id FROM departments WHERE departments.name = Accounting`, async (error, res) => {
 
-    })
+    // })
 
 
 const addEmployee = async () => {
