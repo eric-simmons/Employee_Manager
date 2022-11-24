@@ -1,10 +1,7 @@
 
-// WHEN I choose to view all roles
-// THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
 // WHEN I choose to view all employees
 // THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
-// WHEN I choose to add a department
-// THEN I am prompted to enter the name of the department and that department is added to the database
+
 // WHEN I choose to add a role
 // THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
 // WHEN I choose to add an employee
@@ -18,7 +15,6 @@ require('dotenv').config()
 const inquirer = require('inquirer')
 require('console.table')
 const connection = require('./config/connection.js')
-
 const process = require('process')
 
 
@@ -56,17 +52,16 @@ const showEmployees = async () => {
         const [results] = await connection.promise().query(
             `SELECT 
                 employees.employee_id,
-                employees.first_name,
-                employees.last_name,
-                employees.manager_id,
+                CONCAT (employees.first_name, ' ', employees.last_name) AS name,
                 roles.title,
                 roles.salary,
-                departments.name as department
+                departments.name as department,
+                CONCAT(manager.first_name, ' ', manager.last_name) AS manager 
             FROM employees
             INNER JOIN roles ON employees.role_id=roles.role_id
             INNER JOIN departments ON roles.department_id=departments.department_id
+            LEFT JOIN employees manager on manager.employee_id = employees.manager_id;
             `
-
         )
         console.table(results)
         init()
@@ -86,49 +81,44 @@ const addDepartment = async () => {
             `INSERT INTO departments(name) VALUES (?)`, [answer.name]
         )
         showDepartments()
+        init()
     }
     catch (error) {
         throw new Error(error)
     }
 }
+
 const addRole = async () => {
-    connection.query(`SELECT name FROM departments`, async (err, res) => {
 
-        const answer = await inquirer.prompt([
-            {
-            type: "input",
-            name: "name",
-            message: "What is the name of the new Role you would like to add?"
-        },
-        {
-            type: "input", 
-            name: "salary",
-            message: "What is the salary for the new Role?"
-        },
-        {
-            type: "list",
-            name: "department",
-            message: "What department does this role belong to?",
-            choices: res.map(departments => departments.name)
-        }
-    ])
-        try {
-            await connection.promise().query(
-                `INSERT INTO roles(title, salary, department) VALUES (?, ?, ?)`, [answer.name, answer.salary, answer.department]
-            )
-            showDepartments()
-        }
-        catch (error) {
-            throw new Error(error)
-        }
+        connection.query(`SELECT name FROM departments`, async (err, res) => {
+            const answer = await inquirer.prompt([
+                {
+                    type: "input",
+                    name: "name",
+                    message: "What is the name of the new Role you would like to add?"
+                },
+                {
+                    type: "input",
+                    name: "salary",
+                    message: "What is the salary for the new Role?"
+                },
+                {
+                    type: "list",
+                    name: "department",
+                    message: "What department does this role belong to?",
+                    choices: res.map(departments => departments.name)
+                }
+            ])
+
+        })
+    }
 
 
-
-
-
+    connection.query(`SELECT department_id FROM departments WHERE departments.name = Accounting`, async (error, res) => {
 
     })
-}
+
+
 const addEmployee = async () => {
 
     connection.query(`SELECT title FROM roles; SELECT first_name FROM employees`, async (err, res) => {
@@ -156,23 +146,21 @@ const addEmployee = async () => {
                 choices: res[1].map(employees => employees.first_name)
             }
         ])
-    try{
-        await connection.promise().query(`INSERT INTO employees(first_name, last_name, role_id, manager_id )`)
+        try {
+            await connection.promise().query(`INSERT INTO employees(first_name, last_name, role_id, manager_id )`)
 
 
-    }
-    catch(error){
-        throw new Error(error)
-    }
-    
-    
-    
-    
-    
+        }
+        catch (error) {
+            throw new Error(error)
+        }
+
+
+
+
+
     })
 }
-
-
 const exit = async () => {
     process.kill(process.pid, "SIGINT");
 }
@@ -183,9 +171,8 @@ const mapActions = {
     'View all Departments': showDepartments,
     'Add new Employee': addEmployee,
     'Add new Department': addDepartment,
-    'Add a new Role' : addRole,
+    'Add a new Role': addRole,
     'Exit': exit
-
 }
 
 const init = async () => {
@@ -195,8 +182,6 @@ const init = async () => {
         message: "What would you like to do?",
         choices: Object.keys(mapActions)
     }])
-    // console.log(answer)
-    console.log(mapActions[answer.action])
     mapActions[answer.action]()
 }
 

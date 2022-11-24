@@ -12,10 +12,10 @@ VALUES ("CEO",100000,4),
 ("Human Resource Specialist", 40000, 1);
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
-VALUES ("Ricky", "Bobby", 4, 4),
-("Jimmy", "Jameson", 2, 4),
-("Felicia", "Ferdinand", 3, 4),
-("Dahlia", "James", 1, NULL),
-("Euan", "Frederick", 5, 4),
-("Debra", "Morrow", 6, 4),
-("Melvin", "Montrose", 5, 4);
+VALUES ("Dahlia", "James", 1, NULL),
+("Ricky", "Bobby", 4, NULL),
+("Jimmy", "Jameson", 2, 1),
+("Felicia", "Ferdinand", 3, 1),
+("Euan", "Frederick", 5, 1),
+("Debra", "Morrow", 6, 1),
+("Melvin", "Montrose", 5, NULL);
