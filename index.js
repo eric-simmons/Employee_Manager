@@ -1,10 +1,5 @@
 
 
-
-// WHEN I choose to add a role
-// THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
-// WHEN I choose to add an employee
-// THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
 // WHEN I choose to update an employee role
 // THEN I am prompted to select an employee to update and their new role and this information is updated in the database
 
@@ -87,7 +82,6 @@ const addDepartment = async () => {
         throw new Error(error)
     }
 }
-
 const addRole = async () => {
 
     connection.query(`SELECT name FROM departments`, async (error, res) => {
@@ -123,9 +117,6 @@ const addRole = async () => {
         }
     })
 }
-
-
-
 const addEmployee = async () => {
 
     connection.query(`SELECT title FROM roles; SELECT first_name FROM employees`, async (err, res) => {
@@ -177,6 +168,51 @@ const addEmployee = async () => {
         }
     })
 }
+const updateEmployee = async () => {
+
+    try {
+
+        const [employeeNames] = await connection.promise().query(
+            `SELECT 
+            CONCAT (employees.first_name, ' ', employees.last_name) AS name
+            FROM employees`)
+
+        const [roles] = await connection.promise().query(
+            `SELECT roles.title FROM roles`
+        )
+        const answers = await inquirer.prompt([
+            {
+                type: "list",
+                name: "employee",
+                message: "Which Employee would you like to update?",
+                choices: employeeNames.map(employee => employee.name)
+            },
+            {
+                type: "list",
+                name: "role",
+                message: "What role should this Employee be moved to?",
+                choices: roles.map(role => role.title)
+            }
+        ])
+
+        const [role] = await connection.promise().query(`SELECT role_id FROM roles WHERE title = ?`, [answers.role])
+
+        await connection.promise().query(`UPDATE employees SET role_id = ? WHERE CONCAT (employees.first_name, ' ', employees.last_name) = ?`, [role[0].role_id, answers.employee])
+
+        showEmployees()
+        init()
+    }
+    catch (error) {
+        throw new Error(error)
+    }
+
+
+}
+
+
+
+
+
 const exit = async () => {
     process.kill(process.pid, "SIGINT");
 }
@@ -188,6 +224,7 @@ const mapActions = {
     'Add new Employee': addEmployee,
     'Add new Department': addDepartment,
     'Add a new Role': addRole,
+    'Update an Employee': updateEmployee,
     'Exit': exit
 }
 
