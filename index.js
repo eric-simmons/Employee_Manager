@@ -1,9 +1,4 @@
-
-
-// WHEN I choose to update an employee role
-// THEN I am prompted to select an employee to update and their new role and this information is updated in the database
-
-
+//need to refactor all of the reused queries....
 
 require('dotenv').config()
 const inquirer = require('inquirer')
@@ -13,8 +8,8 @@ const process = require('process')
 const { query } = require('./config/connection.js')
 
 
-
 const showDepartments = async () => {
+    //returns all departments
     try {
         const [results] = await connection.promise().query(`SELECT * FROM departments`)
         console.table(results)
@@ -25,6 +20,7 @@ const showDepartments = async () => {
     }
 }
 const showRoles = async () => {
+    //returns all roles and displays department name from association with roles.department_id
     try {
         const [results] = await connection.promise().query(
             `SELECT 
@@ -43,6 +39,7 @@ const showRoles = async () => {
     }
 }
 const showEmployees = async () => {
+    //joins employees with roles and departments. returns names of roles, department and managers based on associations with id numbers
     try {
         const [results] = await connection.promise().query(
             `SELECT 
@@ -66,6 +63,7 @@ const showEmployees = async () => {
     }
 }
 const addDepartment = async () => {
+    //add department by name
     const answer = await inquirer.prompt([{
         type: 'input',
         name: 'name',
@@ -83,7 +81,7 @@ const addDepartment = async () => {
     }
 }
 const addRole = async () => {
-
+    //select all current department names
     connection.query(`SELECT name FROM departments`, async (error, res) => {
         const answer = await inquirer.prompt([
             {
@@ -103,10 +101,10 @@ const addRole = async () => {
                 choices: res.map(departments => departments.name)
             }
         ])
-
+        //get department id from department name inquiry 
         try {
             const [dept] = await connection.promise().query(`SELECT department_id FROM departments WHERE name = ?`, [answer.department])
-
+            //create new role
             connection.promise().query(`INSERT INTO roles(title, salary, department_id) VALUES (?,?,?)`, [answer.name, answer.salary, dept[0].department_id])
 
             showRoles()
@@ -118,7 +116,7 @@ const addRole = async () => {
     })
 }
 const addEmployee = async () => {
-
+    //select all roles and all first names from employees
     connection.query(`SELECT title FROM roles; SELECT first_name FROM employees`, async (err, res) => {
         const answers = await inquirer.prompt([
             {
@@ -144,16 +142,17 @@ const addEmployee = async () => {
                 choices: res[1].map(employees => employees.first_name)
             }
         ])
+        //get role ids....again
         try {
             const [role] = await connection.promise().query(`SELECT role_id FROM roles WHERE title = ?`, [answers.role])
-
+            //get employee ids.....again
             const [manager] = await connection.promise().query(
                 `SELECT employee_id 
                 FROM employees 
                 WHERE first_name = ?`, [answers.manager])
 
             console.log(manager)
-
+            //create new employee 
             await connection.promise().query(
                 `INSERT INTO employees
                 (first_name, last_name, role_id, manager_id )
@@ -168,15 +167,14 @@ const addEmployee = async () => {
         }
     })
 }
-const updateEmployee = async () => {
-
+const updateEmployeeRole = async () => {
+    //get employee full name
     try {
-
         const [employeeNames] = await connection.promise().query(
             `SELECT 
             CONCAT (employees.first_name, ' ', employees.last_name) AS name
             FROM employees`)
-
+        //get roles again
         const [roles] = await connection.promise().query(
             `SELECT roles.title FROM roles`
         )
@@ -194,9 +192,9 @@ const updateEmployee = async () => {
                 choices: roles.map(role => role.title)
             }
         ])
-
+        //get role ids again
         const [role] = await connection.promise().query(`SELECT role_id FROM roles WHERE title = ?`, [answers.role])
-
+        //update employee role 
         await connection.promise().query(`UPDATE employees SET role_id = ? WHERE CONCAT (employees.first_name, ' ', employees.last_name) = ?`, [role[0].role_id, answers.employee])
 
         showEmployees()
@@ -205,18 +203,39 @@ const updateEmployee = async () => {
     catch (error) {
         throw new Error(error)
     }
-
-
 }
+const deleteEmployee = async () => {
+    //select employee full name again....
+    const [results] = await connection.promise().query(
+        `SELECT 
+    CONCAT (employees.first_name, ' ', employees.last_name) AS name
+    FROM employees`)
 
-
-
+    const answer = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'employee',
+            message: "Which employee would you like to remove?",
+            choices: results.map(employee => employee.name)
+        }
+    ])
+    try {
+        connection.promise().query(`DELETE FROM employees WHERE CONCAT (employees.first_name, ' ', employees.last_name) = ?`, [answer.employee])
+    }
+    catch (error) {
+        throw new Error(error)
+    }
+    showEmployees()
+    init()
+}
 
 
 const exit = async () => {
+    //exit program...same as ctrl+c
     process.kill(process.pid, "SIGINT");
 }
 
+//what to do map?
 const mapActions = {
     'View all Employees': showEmployees,
     'View all Roles': showRoles,
@@ -224,10 +243,11 @@ const mapActions = {
     'Add new Employee': addEmployee,
     'Add new Department': addDepartment,
     'Add a new Role': addRole,
-    'Update an Employee': updateEmployee,
+    'Update an Employee': updateEmployeeRole,
+    'Delete an Employee': deleteEmployee,
     'Exit': exit
 }
-
+//start
 const init = async () => {
     let answer = await inquirer.prompt([{
         type: "list",
