@@ -110,7 +110,6 @@ const addRole = async () => {
             }
         ])
 
-
         try {
             const [dept] = await connection.promise().query(`SELECT department_id FROM departments WHERE name = ?`, [answer.department])
 
@@ -122,18 +121,9 @@ const addRole = async () => {
         catch (error) {
             throw new Error(error)
         }
-
-
-
-
     })
 }
 
-
-
-// connection.query(`SELECT department_id FROM departments WHERE departments.name = Accounting`, async (error, res) => {
-
-// })
 
 
 const addEmployee = async () => {
@@ -164,18 +154,27 @@ const addEmployee = async () => {
             }
         ])
         try {
-            await connection.promise().query(`INSERT INTO employees(first_name, last_name, role_id, manager_id )`)
+            const [role] = await connection.promise().query(`SELECT role_id FROM roles WHERE title = ?`, [answers.role])
 
+            const [manager] = await connection.promise().query(
+                `SELECT employee_id 
+                FROM employees 
+                WHERE first_name = ?`, [answers.manager])
 
+            console.log(manager)
+
+            await connection.promise().query(
+                `INSERT INTO employees
+                (first_name, last_name, role_id, manager_id )
+                 VALUES (?,?,?,?)`,
+                [answers.firstName, answers.lastName, role[0].role_id, manager[0].employee_id])
+
+            showEmployees()
+            init()
         }
         catch (error) {
             throw new Error(error)
         }
-
-
-
-
-
     })
 }
 const exit = async () => {
