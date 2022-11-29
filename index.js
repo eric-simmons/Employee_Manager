@@ -228,8 +228,31 @@ const deleteEmployee = async () => {
     showEmployees()
     init()
 }
+const sumSalaries = async () => {
+    const [results] = await connection.promise().query(`SELECT name FROM departments`)
 
-
+    const answers = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'department',
+            message:"Which departments total salaries would you like to view?",
+            choices: results.map(department => department.name)
+        }
+    ])
+    const [dept] = await connection.promise().query(`SELECT department_id FROM departments WHERE name = ?`, [answers.department])
+console.log(dept[0].department_id)
+    try{
+       const [results] = await connection.promise().query(
+            `SELECT SUM(salary) 
+            FROM roles
+            WHERE department_id = ?`, [dept[0].department_id])
+        console.table(results)
+        init()
+    }
+    catch(error){
+        throw new Error(error)
+    }
+}
 const exit = async () => {
     //exit program...same as ctrl+c
     process.kill(process.pid, "SIGINT");
@@ -245,6 +268,7 @@ const mapActions = {
     'Add a new Role': addRole,
     'Update an Employee': updateEmployeeRole,
     'Delete an Employee': deleteEmployee,
+    'View total Salaries by department': sumSalaries,
     'Exit': exit
 }
 //start
