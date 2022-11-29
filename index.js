@@ -1,6 +1,5 @@
 
-// WHEN I choose to view all employees
-// THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
+
 
 // WHEN I choose to add a role
 // THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
@@ -16,6 +15,7 @@ const inquirer = require('inquirer')
 require('console.table')
 const connection = require('./config/connection.js')
 const process = require('process')
+const { query } = require('./config/connection.js')
 
 
 
@@ -90,32 +90,50 @@ const addDepartment = async () => {
 
 const addRole = async () => {
 
-        connection.query(`SELECT name FROM departments`, async (err, res) => {
-            const answer = await inquirer.prompt([
-                {
-                    type: "input",
-                    name: "name",
-                    message: "What is the name of the new Role you would like to add?"
-                },
-                {
-                    type: "input",
-                    name: "salary",
-                    message: "What is the salary for the new Role?"
-                },
-                {
-                    type: "list",
-                    name: "department",
-                    message: "What department does this role belong to?",
-                    choices: res.map(departments => departments.name)
-                }
-            ])
-        })
-    }
+    connection.query(`SELECT name FROM departments`, async (error, res) => {
+        const answer = await inquirer.prompt([
+            {
+                type: "input",
+                name: "name",
+                message: "What is the name of the new Role you would like to add?"
+            },
+            {
+                type: "input",
+                name: "salary",
+                message: "What is the salary for the new Role?"
+            },
+            {
+                type: "list",
+                name: "department",
+                message: "What department does this role belong to?",
+                choices: res.map(departments => departments.name)
+            }
+        ])
 
 
-    // connection.query(`SELECT department_id FROM departments WHERE departments.name = Accounting`, async (error, res) => {
+        try {
+            const [dept] = await connection.promise().query(`SELECT department_id FROM departments WHERE name = ?`, [answer.department])
 
-    // })
+            connection.promise().query(`INSERT INTO roles(title, salary, department_id) VALUES (?,?,?)`, [answer.name, answer.salary, dept[0].department_id])
+
+            showRoles()
+            init()
+        }
+        catch (error) {
+            throw new Error(error)
+        }
+
+
+
+
+    })
+}
+
+
+
+// connection.query(`SELECT department_id FROM departments WHERE departments.name = Accounting`, async (error, res) => {
+
+// })
 
 
 const addEmployee = async () => {
