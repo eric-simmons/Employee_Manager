@@ -235,21 +235,21 @@ const sumSalaries = async () => {
         {
             type: 'list',
             name: 'department',
-            message:"Which departments total salaries would you like to view?",
+            message: "Which departments total salaries would you like to view?",
             choices: results.map(department => department.name)
         }
     ])
     const [dept] = await connection.promise().query(`SELECT department_id FROM departments WHERE name = ?`, [answers.department])
-console.log(dept[0].department_id)
-    try{
-       const [results] = await connection.promise().query(
+    console.log(dept[0].department_id)
+    try {
+        const [results] = await connection.promise().query(
             `SELECT SUM(salary) 
             FROM roles
             WHERE department_id = ?`, [dept[0].department_id])
         console.table(results)
         init()
     }
-    catch(error){
+    catch (error) {
         throw new Error(error)
     }
 }
